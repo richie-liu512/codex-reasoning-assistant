@@ -1,0 +1,37 @@
+{
+  "name": "codex-reasoning-assistant",
+  "version": "0.1.0",
+  "description": "Shows the active Codex model and reasoning effort at task start, then recommends the right setting for the work ahead.",
+  "author": {
+    "name": "Richie Liu",
+    "url": "https://github.com/richie-liu512"
+  },
+  "homepage": "https://github.com/richie-liu512/codex-reasoning-assistant",
+  "repository": "https://github.com/richie-liu512/codex-reasoning-assistant",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "reasoning-effort",
+    "model-selection",
+    "productivity",
+    "privacy"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Reasoning Assistant",
+    "shortDescription": "Check model and reasoning effort before each task",
+    "longDescription": "See the active model and reasoning effort before work begins, understand whether they fit the next phase, and get a clear recommendation to continue, raise or lower effort, or change models.",
+    "developerName": "Richie Liu",
+    "category": "Productivity",
+    "capabilities": [
+      "Reasoning check",
+      "Model guidance"
+    ],
+    "websiteURL": "https://github.com/richie-liu512/codex-reasoning-assistant",
+    "privacyPolicyURL": "https://github.com/richie-liu512/codex-reasoning-assistant/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Check whether my current model and reasoning effort fit this task.",
+      "Recommend the next phase's model and reasoning effort."
+    ]
+  }
+}

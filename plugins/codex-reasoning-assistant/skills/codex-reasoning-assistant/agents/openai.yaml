@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex Reasoning Assistant"
+  short_description: "Check model and reasoning effort before each task"
+  default_prompt: "Use $codex-reasoning-assistant to check whether my current model and reasoning effort fit this task."
+policy:
+  allow_implicit_invocation: true

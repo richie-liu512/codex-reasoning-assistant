@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "policy_version": "2026-07-17.1",
+  "updated_at": "2026-07-17",
+  "review_after": "2026-09-17",
+  "authority": {
+    "official_rule": "Choose a model capable of the task, then use the lowest reasoning effort that meets the quality bar.",
+    "evaluation_rule": "Use representative tasks and verification evidence instead of assuming that the highest effort is always best.",
+    "mapping_limit": "The same effort name does not imply the same capability across different models."
+  },
+  "decision_principles": [
+    "Choose the model before its reasoning effort.",
+    "Do not use a weaker model's highest effort as a default substitute for a more capable model.",
+    "Do not equate task length, file count, or token volume with reasoning difficulty.",
+    "Protect correctness, completeness, safety, and required evidence before optimizing latency or usage.",
+    "Reassess the next phase at natural boundaries instead of carrying a difficult phase's setting through the entire task.",
+    "Before increasing effort, check whether the task lacks success criteria, dependencies, tool routing, context, or a verification loop."
+  ],
+  "decision_factors": {
+    "ambiguity": "Whether the goal, evidence, or correct path has multiple plausible interpretations.",
+    "dependency_depth": "Whether the conclusion relies on a long or fragile chain of dependent reasoning.",
+    "verification_difficulty": "Whether an incorrect result would be difficult to detect with tests, review, or external evidence.",
+    "failure_impact": "Whether failure is costly, irreversible, external, security-sensitive, or safety-sensitive.",
+    "tool_state_complexity": "Whether the phase coordinates multiple tools, state transitions, concurrent results, or recovery points."
+  },
+  "effort_levels": {
+    "none": {
+      "label": "None",
+      "label_zh": "无",
+      "use_when": "The selected model supports it and the task requires essentially no reasoning."
+    },
+    "minimal": {
+      "label": "Minimal",
+      "label_zh": "极低",
+      "use_when": "A mechanical, latency-first task needs almost no interpretation."
+    },
+    "low": {
+      "label": "Low",
+      "label_zh": "低",
+      "use_when": "The path is clear, local, directly verifiable, and low impact."
+    },
+    "medium": {
+      "label": "Medium",
+      "label_zh": "中",
+      "use_when": "The task has several dependent steps and limited judgment, with clear success criteria and verification."
+    },
+    "high": {
+      "label": "High",
+      "label_zh": "高",
+      "use_when": "The task requires tracing complex logic, testing assumptions, or handling meaningful edge cases."
+    },
+    "xhigh": {
+      "label": "Extra High",
+      "label_zh": "超高",
+      "use_when": "The work is especially demanding, ambiguous, cross-source, high-impact, or difficult to verify."
+    },
+    "max": {
+      "label": "Max",
+      "label_zh": "最高",
+      "use_when": "Reserve for the hardest quality-first work when representative evaluation or prior failure shows a benefit over Extra High."
+    },
+    "ultra": {
+      "label": "Ultra",
+      "label_zh": "极限",
+      "use_when": "Use only when the task divides cleanly into independent branches and proactive subagent delegation is appropriate and available."
+    }
+  },
+  "model_aliases": {
+    "gpt-5.6": "gpt-5.6-sol"
+  },
+  "model_profiles": {
+    "gpt-5.6-sol": {
+      "role": "Frontier work that is ambiguous, multi-step, high-value, or dependent on planning, tool use, validation, and follow-through.",
+      "recommended_baseline": "medium",
+      "baseline_rule": "Use low for clear, directly verifiable work; use medium as the balanced starting point for ordinary non-trivial work.",
+      "escalation_rule": "Use high for complex logic and debugging; use xhigh for especially demanding or high-impact synthesis; reserve max for measured benefit on the hardest workloads.",
+      "switch_review_at": null,
+      "switch_model_guidance": "Keep Sol when quality is the primary constraint. Compare Terra or Luna only when latency, throughput, or usage is materially more important.",
+      "calibration_status": "official_guidance"
+    },
+    "gpt-5.6-terra": {
+      "role": "Strong everyday agent work that balances intelligence, speed, and usage.",
+      "recommended_baseline": "medium",
+      "baseline_rule": "Use low for clear scans or focused edits; use medium for normal multi-step work.",
+      "escalation_rule": "Use high for bounded complex work. Before xhigh or max, compare whether Sol at medium or high better protects quality.",
+      "switch_review_at": "xhigh",
+      "switch_model_guidance": "When quality is primary and the work needs xhigh or max, compare Sol before stacking more effort on Terra.",
+      "calibration_status": "official_guidance"
+    },
+    "gpt-5.6-luna": {
+      "role": "Clear, repeatable, high-volume, extraction, transformation, and structured-summary workloads.",
+      "recommended_baseline": "low",
+      "baseline_rule": "Use low for mechanical work and medium when limited judgment is required.",
+      "escalation_rule": "Use high only for bounded inference. If quality requires xhigh or max, compare Terra or Sol instead.",
+      "switch_review_at": "high",
+      "switch_model_guidance": "Prefer Terra or Sol when the task becomes ambiguous, architecture-heavy, high-impact, or difficult to verify.",
+      "calibration_status": "official_guidance"
+    },
+    "gpt-5.5": {
+      "role": "A capable model retained for workflows that are pinned to GPT-5.5.",
+      "recommended_baseline": "medium",
+      "baseline_rule": "Preserve an existing validated setting, or use medium for ordinary non-trivial work.",
+      "escalation_rule": "Use high or xhigh for difficult work, while comparing GPT-5.6 Sol when migration is allowed.",
+      "switch_review_at": "xhigh",
+      "switch_model_guidance": "For new quality-first work without compatibility constraints, compare GPT-5.6 Sol before escalating further.",
+      "calibration_status": "official_migration_guidance"
+    },
+    "gpt-5.4": {
+      "role": "A strong model retained where a workflow is pinned to GPT-5.4.",
+      "recommended_baseline": "medium",
+      "baseline_rule": "Preserve a validated workflow setting, or use medium for everyday work.",
+      "escalation_rule": "Use high for complex work, but do not assume more effort removes the capability gap to newer models.",
+      "switch_review_at": "high",
+      "switch_model_guidance": "When migration is allowed and quality matters, compare GPT-5.6 Sol for complex phases.",
+      "calibration_status": "official_migration_guidance"
+    },
+    "gpt-5.4-mini": {
+      "role": "Simple, fast, and cost-sensitive coding tasks.",
+      "recommended_baseline": "low",
+      "baseline_rule": "Use low for clear work and medium for limited multi-step reasoning.",
+      "escalation_rule": "When the work requires complex reasoning, architecture, or high-impact validation, change model before repeatedly increasing effort.",
+      "switch_review_at": "high",
+      "switch_model_guidance": "Compare Terra or Sol when high effort appears necessary.",
+      "calibration_status": "official_role_guidance"
+    },
+    "gpt-5.3-codex-spark": {
+      "role": "Near-instant, text-only coding iteration where latency matters more than broad capability.",
+      "recommended_baseline": "low",
+      "baseline_rule": "Use for sharply bounded iteration with an obvious completion condition.",
+      "escalation_rule": "Do not use high effort as a substitute when the task changes into deep investigation, architecture, or high-impact review.",
+      "switch_review_at": "high",
+      "switch_model_guidance": "Use Terra for balanced work or Sol for deep, ambiguous, or quality-first work.",
+      "calibration_status": "official_role_guidance"
+    }
+  },
+  "sources": [
+    {
+      "kind": "official",
+      "url": "https://developers.openai.com/api/docs/guides/latest-model",
+      "use": "GPT-5.6 model roles, migration baseline, and reasoning-effort guidance."
+    },
+    {
+      "kind": "official",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6",
+      "use": "Lowest-sufficient-effort rule, representative evaluation, and Max boundaries."
+    },
+    {
+      "kind": "official",
+      "url": "https://developers.openai.com/codex/codex-manual.md",
+      "use": "Codex model roles, effort semantics, skills, plugins, and lifecycle hooks."
+    }
+  ]
+}
