@@ -1,7 +1,7 @@
 {
   "name": "codex-reasoning-assistant",
-  "version": "0.1.0",
-  "description": "Shows the active Codex model and reasoning effort at task start, then recommends the right setting for the work ahead.",
+  "version": "0.1.1",
+  "description": "Reads the active Codex model and reasoning effort, assesses whether they fit the next phase, and recommends the right configuration for the work ahead.",
   "author": {
     "name": "Richie Liu",
     "url": "https://github.com/richie-liu512"
@@ -19,12 +19,12 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Reasoning Assistant",
-    "shortDescription": "Check model and reasoning effort before each task",
-    "longDescription": "See the active model and reasoning effort before work begins, understand whether they fit the next phase, and get a clear recommendation to continue, raise or lower effort, or change models.",
+    "shortDescription": "Assess model and reasoning effort for each task",
+    "longDescription": "Read the active model and reasoning effort, assess whether they can protect the quality of the next phase, and get a clear recommendation to continue, raise or lower effort, or change models.",
     "developerName": "Richie Liu",
     "category": "Productivity",
     "capabilities": [
-      "Reasoning check",
+      "Task-aware reasoning assessment",
       "Model guidance"
     ],
     "websiteURL": "https://github.com/richie-liu512/codex-reasoning-assistant",

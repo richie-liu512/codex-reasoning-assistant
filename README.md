@@ -2,37 +2,65 @@
 
 [简体中文](README.zh-CN.md)
 
-Show the active Codex model and reasoning effort at the beginning of every task, then recommend whether to continue, raise or lower the effort, or change models for the work ahead.
+## Introduction
 
-## What it does
+Codex Reasoning Assistant is a Codex plugin that determines whether the active model and reasoning effort fit the task. At the beginning of each task, it reads the model and reasoning effort actually used by the current task, analyzes the difficulty and quality requirements of the work ahead, and recommends continuing with the current configuration, raising or lowering the reasoning effort, or changing models.
 
-- Reads the model and reasoning effort used by the current task;
-- Shows where that effort sits within the selected model's supported range;
-- Checks whether the current configuration can protect the quality of the next phase;
-- Recommends a configuration again at natural phase boundaries in long-running work;
-- States clearly when the active effort cannot be confirmed instead of presenting a configuration default as the current value.
+For multi-stage work, the assistant reassesses the configuration needed for the next phase at natural boundaries. Its first priority is task quality, while avoiding reasoning settings that add no meaningful benefit to clear, simple, and easily verified work.
 
-At the beginning of a task, you see a compact check such as:
+## Core capabilities
 
-```text
-Reasoning check: GPT-5.6 Sol · Extra High (actual, 4/6) | recommended: Sol · High | proceed
-```
+- Read the model and reasoning effort actually used by the current task;
+- Assess whether the current configuration can protect the correctness, completeness, safety, and verifiability of the next phase;
+- Make model-specific recommendations instead of treating the same effort name as equally capable across different models;
+- Recommend switching before a difficult phase when the current effort is too weak, or lowering at a recoverable checkpoint when it is clearly stronger than needed;
+- Reassess long-running work when it enters a new phase instead of carrying one setting through the entire task mechanically;
+- State clearly when the active effort cannot be confirmed instead of presenting a configuration default as the current value.
 
-If the current effort is too low, the assistant pauses before the difficult phase and reports what is complete, what remains, the recommended configuration, and where to resume. If the effort is clearly higher than the remaining work needs, it first completes the part that benefits from stronger reasoning and recommends a lower setting at an appropriate checkpoint. When the configuration fits, the task continues.
+## How it works
 
-## How it decides
+The plugin has two parts:
 
-The assistant first chooses a model capable of the task, then selects the lowest reasoning effort that meets the quality bar. It considers:
+1. A `UserPromptSubmit` hook reads the active model and reasoning effort in read-only mode before Codex begins processing the task;
+2. A Skill uses the model's capability profile, the next phase's reasoning needs, and its validation burden to recommend a model, reasoning effort, and execution action.
 
-- ambiguity in the goal and evidence;
-- the depth and fragility of dependent reasoning;
-- how easily an incorrect result can be detected through tests or review;
-- the impact and reversibility of failure;
-- the complexity of tools, state, concurrency, and recovery.
+The decision order is always:
 
-File count, task length, and expected token usage are not treated as reasoning difficulty by themselves. The same effort name also does not imply the same capability across different models.
+1. Confirm that the model is capable of the task;
+2. Select the lowest reasoning effort that still protects result quality;
+3. Decide whether to proceed, pause before a difficult phase, or recommend lowering at a recoverable checkpoint.
 
-Model roles and effort guidance come from a dated policy with a review deadline. See [Reasoning Policy](docs/reasoning-policy.md) for the current basis and official sources.
+If the model itself is not suitable for the task, increasing reasoning effort alone cannot reliably close the capability gap.
+
+## Decision criteria
+
+The assistant assesses the **next phase of work**. It does not choose an effort level simply from file count, task duration, or expected token usage. It considers ambiguity in the goal and evidence, the depth and fragility of dependent reasoning, how easily errors can be detected through tests, the impact and reversibility of failure, and the complexity of tools, state, concurrency, and recovery.
+
+These factors are not a mechanical scorecard. The central questions are how much independent judgment the phase requires and how difficult an incorrect judgment would be to detect and repair.
+
+| Reasoning effort | Work it usually fits |
+| --- | --- |
+| None / Minimal | Mechanical operations that require almost no interpretation or judgment, when the selected model supports these levels. |
+| Low | A clear, local, low-impact path with results that can be verified directly. |
+| Medium | Several dependent steps and limited judgment, with clear goals, acceptance criteria, and verification. |
+| High | Complex logic tracing, debugging, testing key assumptions, or handling meaningful edge cases. |
+| Extra High | Highly ambiguous goals or evidence, cross-source synthesis, high-impact work, or errors that are difficult to detect through tests and review. |
+| Max | Only the hardest quality-first work, when representative evaluation or prior failure has shown a real benefit over Extra High. |
+| Ultra | Work that divides cleanly and benefits from proactive delegation to multiple subagents; it is an orchestration mode, not merely a larger single-thread reasoning scalar. |
+
+The same effort level does not imply the same capability across models. The current policy applies these model-specific boundaries:
+
+| Model | Recommended starting point and escalation boundary |
+| --- | --- |
+| GPT-5.6 Sol | Medium is the balanced starting point for ordinary non-trivial work; use High for complex logic and Extra High for especially difficult or high-impact work; Max requires measured evidence of benefit. |
+| GPT-5.6 Terra | Start ordinary multi-step work at Medium and use Low for clearly bounded tasks; before using Extra High or Max, compare whether Sol is the better model. |
+| GPT-5.6 Luna | Use Low for clear, repeatable, high-volume work and Medium when limited judgment is required; if High appears necessary, compare Terra or Sol. |
+| GPT-5.4 mini / Codex Spark | Use for sharply bounded, latency-first work; when the task becomes deep investigation, architecture, or high-impact validation, change models before repeatedly increasing effort. |
+| Older models pinned by an existing workflow | Preserve settings that have already been validated; when migration is allowed, compare newer models for complex phases instead of assuming more effort removes the capability gap. |
+
+Before recommending a higher effort, the assistant also checks whether the real problem is unclear success criteria, missing context, unknown dependencies, incorrect tool routing, or a missing verification loop. Higher reasoning effort cannot repair these foundational gaps.
+
+See [Reasoning Policy](docs/reasoning-policy.md) for more detailed model guidance, the review mechanism, and official sources.
 
 ## Installation
 
@@ -54,11 +82,15 @@ Then:
 3. Open `/hooks`, review the bundled hook, and trust it;
 4. Start a new task.
 
-If you already have a `UserPromptSubmit` hook that checks reasoning effort, disable one of them to avoid duplicate checks.
+If another `UserPromptSubmit` hook already reads reasoning effort, disable one of them to avoid checking the same task twice.
 
 ## Usage
 
-After installation, every submitted task is checked automatically. No extra prompt is required.
+After installation, every submitted task is assessed automatically. No extra prompt is required. A typical result is:
+
+```text
+Reasoning recommendation: current GPT-5.6 Sol · High (actual) | next phase: Sol · High | proceed
+```
 
 You can also ask directly:
 
@@ -72,15 +104,15 @@ At a phase boundary in longer work, ask:
 Which model and reasoning effort should I use for the next phase?
 ```
 
-The assistant gives a recommendation, and you decide whether to switch. It helps change configuration or start another task only when you explicitly request that action.
+When the recommendation matches the active setting, the task can continue. A higher recommendation means the configuration should be raised before entering the difficult phase. A lower recommendation means the current configuration can complete the task but is materially stronger than the remaining work needs. Short tasks are usually completed directly; long tasks receive a lowering recommendation at the next recoverable checkpoint. The user always decides whether to switch.
 
-## Confidence in the detected value
+## Detection status
 
-- `actual`: the model comes from the current hook event and the effort is confirmed from current task state;
+- `actual`: the model and reasoning effort are confirmed from current task state;
 - `default_only`: only a Codex configuration default is available, and the running task has not been confirmed to use it;
 - `unavailable`: the current environment cannot reliably confirm the active effort.
 
-The model catalog's default effort is reported separately and is never presented as the active task value.
+Detection confidence and task suitability are separate questions. The plugin first states whether the detected value is trustworthy, then independently assesses whether the configuration fits the task.
 
 ## Data and permissions
 
@@ -88,7 +120,7 @@ Detection reads only the Codex metadata needed to identify the model and reasoni
 
 See [Privacy](PRIVACY.md) and [Security](SECURITY.md) for details.
 
-## Verify a checkout
+## Development and verification
 
 After cloning the repository, run:
 
@@ -100,7 +132,7 @@ Verification covers plugin structure, hook wrappers, privacy scanning, Python sy
 
 ## Compatibility
 
-Codex plugin formats and internal state structures can evolve. If detection fails, the task continues and the assistant marks the active effort as unavailable.
+Codex plugin formats and internal state structures can evolve. If detection fails, the task continues, the assistant marks the active effort as unavailable, and it recommends a configuration only from the needs of the next phase.
 
 ## License
 

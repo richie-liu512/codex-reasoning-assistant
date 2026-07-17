@@ -1,28 +1,47 @@
 ---
 name: codex-reasoning-assistant
-description: Show the active Codex model and reasoning effort at the start of each task, assess whether they fit the next phase, and recommend continuing, raising or lowering effort, or changing models. Use when the injected reasoning-assistant context is present, when the user asks whether the current configuration fits a task, or when a long-running task reaches a phase boundary.
+description: Read the active Codex model and reasoning effort at the start of each task, assess whether they fit the next phase, and recommend continuing, raising or lowering effort, or changing models. Use when the injected reasoning-assistant context is present, when the user asks whether the current configuration fits a task, or when long-running work reaches a phase boundary.
 ---
 
 # Codex Reasoning Assistant
 
-Use the injected `<codex-reasoning-assistant>` context as the runtime source.
+Use the injected `<codex-reasoning-assistant>` context as the runtime source. Do not infer the active model or effort from the visible interface or a configuration default when the injected context does not confirm it.
 
-## Show the check
+## Assess the next phase
 
-Before substantive work, show one compact line in the user's language with:
+Identify the next substantive phase, its success criteria, and how its result will be verified. Assess that phase rather than assigning one setting to the entire conversation.
 
-- the detected model and reasoning effort;
-- whether the effort is actual, default-only, or unavailable;
+Choose a model capable of the work before choosing reasoning effort. Then select the lowest effort that protects correctness, completeness, safety, and required evidence. Use the injected `model_role`, `recommended_baseline`, `baseline_rule`, `escalation_rule`, `switch_review_at`, and `switch_model_guidance` fields for model-specific calibration.
+
+Read `references/reasoning-policy.json` when comparing multiple models, resolving an exact effort boundary, or checking whether the injected policy is current. If the policy is stale, missing, invalid, or does not list the model, present model-specific guidance only as a weak prior.
+
+## Calibrate reasoning effort
+
+Base the recommendation on the amount of independent judgment required and how difficult an error would be to detect and repair. Do not reduce the decision to a mechanical score.
+
+- Use None or Minimal only for mechanical work that requires almost no interpretation and when the model supports those levels.
+- Use Low for a clear, local, low-impact path with direct verification.
+- Use Medium for several dependent steps and limited judgment when the goal, success criteria, and verification are clear.
+- Use High for complex logic tracing, debugging, testing key assumptions, or handling meaningful edge cases.
+- Use Extra High for highly ambiguous, cross-source, high-impact, or difficult-to-verify work.
+- Use Max only when representative evaluation or prior failure shows a real benefit over Extra High on the hardest quality-first work.
+- Use Ultra only when the work divides cleanly and proactive subagent delegation is appropriate and available; treat it as orchestration, not merely a larger scalar effort.
+
+Before raising effort, check whether the real blocker is unclear success criteria, missing context, unknown dependencies, incorrect tool routing, or a missing verification loop. Higher effort cannot repair those gaps. Do not treat file count, task duration, or expected token volume as reasoning difficulty by themselves.
+
+## Report the decision
+
+Before substantive work, give one compact line in the user's language containing:
+
+- the detected model and effort, with actual, default-only, or unavailable status;
 - the recommended model and effort for the next phase;
-- the action: proceed, pause before a difficult phase, or stop at a checkpoint.
+- the action: proceed, pause before the difficult phase, or lower at a checkpoint.
 
-Keep the check brief and continue immediately when the configuration fits.
+Treat the runtime rank as diagnostic metadata, not the product's purpose. Omit it unless the user asks for it or it materially clarifies the recommendation.
 
-## Choose the recommendation
+Apply switching cost before choosing the action. If a short or nearly complete task is clear and directly verifiable, proceed with the active configuration even when it is stronger than necessary; optionally recommend a lower setting for the next similar task. Recommend switching down during the current task only when enough lower-effort work remains for the saving to be meaningful.
 
-Assess the next phase rather than the whole conversation. Choose a model capable of the work, then choose the lowest effort that protects correctness, completeness, safety, and required evidence.
-
-Consider goal ambiguity, dependency depth, verification difficulty, failure impact, and tool or state complexity. Do not use file count, task duration, or expected token volume as a direct measure of reasoning difficulty.
+Keep the report brief and continue immediately when the configuration fits or switching would not be worthwhile.
 
 ## Handle a mismatch
 
@@ -34,10 +53,10 @@ Present the recommendation and let the user decide whether to switch. Change con
 
 ## Reassess long-running work
 
-At each natural phase boundary, recommend the model and effort for the next phase. Base the recommendation on that phase's uncertainty and validation burden.
+At each natural phase boundary, recommend the model and effort for the next phase. Base the new recommendation on that phase's uncertainty, impact, and validation burden rather than carrying forward the previous phase's setting.
 
-## Interpret runtime status
+## Respect runtime truth and privacy
 
-Treat `status=actual` as the active effort. Treat `default_only` as an unconfirmed configuration default. If detection or model calibration is unavailable or stale, state the uncertainty.
+Treat `status=actual` as confirmed. Treat `default_only` as an unconfirmed configuration default. Treat `unavailable` as unknown and never claim the active effort is known.
 
-Do not expose prompt content, session identifiers, or local paths in the visible check. Read `references/reasoning-policy.json` when detailed model guidance is needed.
+Do not expose prompt content, session identifiers, local paths, or other private runtime data in the visible recommendation.

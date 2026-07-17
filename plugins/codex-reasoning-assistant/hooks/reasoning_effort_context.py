@@ -430,7 +430,7 @@ def render_context(metadata: dict[str, Any]) -> str:
             f"calibration_status={metadata['calibration_status']}",
             f"current_effort_guidance={single_line(metadata['current_effort_guidance'])}",
             f"assessment_factors={factors}",
-            "instruction=Before substantive work, show one compact reasoning check in the user's language. "
+            "instruction=Before substantive work, provide one compact reasoning recommendation in the user's language. "
             "State the detected model and effort, whether it is actual/default-only/unavailable, "
             "the recommended model and effort for the next phase, and whether to proceed, pause, "
             "or stop at a checkpoint. Choose the model before effort and use the lowest effort that "

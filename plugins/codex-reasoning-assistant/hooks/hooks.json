@@ -1,5 +1,5 @@
 {
-  "description": "Add the active Codex model and reasoning effort to each user turn.",
+  "description": "Read the active Codex model and reasoning effort so each task can be assessed.",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -9,7 +9,7 @@
             "command": "sh \"$PLUGIN_ROOT/hooks/run_hook.sh\"",
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& (Join-Path $env:PLUGIN_ROOT 'hooks\\run_hook.ps1')\"",
             "timeout": 5,
-            "statusMessage": "Checking model and reasoning effort"
+            "statusMessage": "Assessing model and reasoning effort"
           }
         ]
       }
