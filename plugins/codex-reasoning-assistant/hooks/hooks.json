@@ -1,5 +1,4 @@
 {
-  "description": "Read the active Codex model and reasoning effort so each task can be assessed.",
   "hooks": {
     "UserPromptSubmit": [
       {
