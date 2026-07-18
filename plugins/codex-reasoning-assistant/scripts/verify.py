@@ -35,8 +35,14 @@ def load_json(path: Path) -> dict:
 def check_structure() -> None:
     manifest = load_json(PLUGIN_MANIFEST)
     marketplace = load_json(MARKETPLACE)
-    load_json(PLUGIN_ROOT / "hooks" / "hooks.json")
+    hooks = load_json(PLUGIN_ROOT / "hooks" / "hooks.json")
     load_json(POLICY)
+
+    if set(hooks) != {"hooks"}:
+        raise ValueError(
+            "Plugin hooks.json may only contain the Codex-supported top-level "
+            "'hooks' field"
+        )
 
     name = manifest.get("name")
     if name != "codex-reasoning-assistant":

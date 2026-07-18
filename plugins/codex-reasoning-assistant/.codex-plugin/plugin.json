@@ -1,6 +1,6 @@
 {
   "name": "codex-reasoning-assistant",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Reads the active Codex model and reasoning effort, assesses whether they fit the next phase, and recommends the right configuration for the work ahead.",
   "author": {
     "name": "Richie Liu",
