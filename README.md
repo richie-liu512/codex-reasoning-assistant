@@ -4,9 +4,9 @@
 
 ## Introduction
 
-Codex Reasoning Assistant is a Codex plugin that determines whether the active model and reasoning effort fit the task. At the beginning of each task, it reads the model and reasoning effort actually used by the current task, analyzes the difficulty and quality requirements of the work ahead, and recommends continuing with the current configuration, raising or lowering the reasoning effort, or changing models.
+This plugin helps you evaluate the required reasoning effort for the current task. At the start of each run, it detects the active model and reasoning configuration, analyzes the difficulty and quality requirements of the upcoming work, and recommends whether to maintain the current setup, adjust the reasoning effort, or switch models.
 
-For multi-stage work, the assistant reassesses the configuration needed for the next phase at natural boundaries. Its first priority is task quality, while avoiding reasoning settings that add no meaningful benefit to clear, simple, and easily verified work.
+For multi-stage tasks, the assistant provides configuration recommendations for the next phase. It prioritizes output quality while preventing the unnecessary use of high reasoning efforts on straightforward, easily verifiable steps that offer no meaningful return.
 
 ## Core capabilities
 
